@@ -7,7 +7,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
-const frontendDirectory = "the_wall_frontend";
+const frontendDirectory = "ic_files_upload_frontend";
 
 const frontend_entry = path.join("src", frontendDirectory, "src", "index.html");
 
@@ -48,7 +48,7 @@ module.exports = {
     rules: [
       { test: /\.(ts|tsx|jsx)$/, loader: "ts-loader" },
       { test: /\.css$/, use: ["style-loader", "css-loader", "postcss-loader"] },
-    ],
+    ]
   },
   plugins: [
     new HtmlWebpackPlugin({
