@@ -1,6 +1,6 @@
 {
-  "name": "upload-file",
-  "version": "0.2.0",
+  "name": "file_storage",
+  "version": "0.2.1",
   "type": "module",
   "scripts": {
     "gen_can_test_interface": "bash ./scripts/gen_can_test_interface.sh",
