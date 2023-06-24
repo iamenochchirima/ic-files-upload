@@ -76,7 +76,7 @@ actor class FileStorage() = this {
 		return chunk_id_count;
 	};
 
-	public shared ({ caller }) func commit_batch(batch_id : Text, asset_properties : AssetProperties) : async Result.Result<Asset_ID, Text> {
+	public shared ({ caller }) func commit_batch(batch_id : Text, chunk_ids : [Chunk_ID], asset_properties : AssetProperties, path : Text,) : async Result.Result<Asset_ID, Text> {
 		let ASSET_ID = Utils.generate_uuid();
 		let CANISTER_ID = Principal.toText(Principal.fromActor(this));
 
@@ -130,12 +130,75 @@ actor class FileStorage() = this {
 				is_prod = IS_PROD;
 			});
 			owner = Principal.toText(caller);
+			path = path;
 		};
 
 		ignore Map.put(assets, thash, ASSET_ID, asset);
 
 		return #ok(asset.id);
 	};
+
+
+	// public shared ({ caller }) func commit_batch(batch_id : Text, asset_properties : AssetProperties) : async Result.Result<Asset_ID, Text> {
+	// 	let ASSET_ID = Utils.generate_uuid();
+	// 	let CANISTER_ID = Principal.toText(Principal.fromActor(this));
+
+	// 	var chunks_to_commit = Buffer.Buffer<AssetChunk>(0);
+	// 	var asset_content = Buffer.Buffer<Blob>(0);
+	// 	var content_size = 0;
+	// 	var asset_checksum : Nat32 = 0;
+	// 	let modulo_value : Nat32 = 400_000_000;
+
+	// 	for (chunk in Map.vals(chunks)) {
+	// 		if (chunk.batch_id == batch_id) {
+	// 			if (chunk.owner != caller) {
+	// 				return #err("Not Owner of Chunk");
+	// 			};
+
+	// 			chunks_to_commit.add(chunk);
+	// 		};
+	// 	};
+
+	// 	chunks_to_commit.sort(compare);
+
+	// 	for (chunk in chunks_to_commit.vals()) {
+	// 		asset_content.add(chunk.content);
+
+	// 		asset_checksum := (asset_checksum + chunk.checksum) % modulo_value;
+
+	// 		content_size := content_size + chunk.content.size();
+	// 	};
+
+	// 	if (Nat32.notEqual(asset_checksum, asset_properties.checksum)) {
+	// 		return #err("Invalid Checksum: Chunk Missing");
+	// 	};
+
+	// 	for (chunk in chunks_to_commit.vals()) {
+	// 		Map.delete(chunks, nhash, chunk.id);
+	// 	};
+
+	// 	let asset : Types.Asset = {
+	// 		canister_id = CANISTER_ID;
+	// 		chunks_size = asset_content.size();
+	// 		content = Option.make(Buffer.toArray(asset_content));
+	// 		content_encoding = asset_properties.content_encoding;
+	// 		content_size = content_size;
+	// 		content_type = asset_properties.content_type;
+	// 		created = Time.now();
+	// 		filename = asset_properties.filename;
+	// 		id = ASSET_ID;
+	// 		url = Utils.generate_asset_url({
+	// 			asset_id = ASSET_ID;
+	// 			canister_id = CANISTER_ID;
+	// 			is_prod = IS_PROD;
+	// 		});
+	// 		owner = Principal.toText(caller);
+	// 	};
+
+	// 	ignore Map.put(assets, thash, ASSET_ID, asset);
+
+	// 	return #ok(asset.id);
+	// };
 
 	public shared ({ caller }) func delete_asset(id : Asset_ID) : async Result.Result<Text, Text> {
 		switch (Map.get(assets, thash, id)) {
@@ -329,6 +392,24 @@ actor class FileStorage() = this {
 		Timer.cancelTimer(1);
 
 		return 0;
+	};
+
+	// ------------------------- Additional Function -------------------------
+	public shared func edit_asset_path(id : Asset_ID, new_path : Text) : async Result.Result<Text, Text> {
+		switch (Map.get(assets, thash, id)) {
+			case (?asset) {
+				let updated_asset : Asset = {
+					asset with path = new_path;
+				};
+
+				ignore Map.put(assets, thash, id, updated_asset);
+
+				return #ok("Asset path updated successfully.");
+			};
+			case (_) {
+				return #err("Asset not found.");
+			};
+		};
 	};
 
 	// ------------------------- System Methods -------------------------

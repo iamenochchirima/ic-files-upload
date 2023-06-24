@@ -2,14 +2,19 @@ import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ic_files_upload_backend } from "../../../declarations/ic_files_upload_backend/index";
 import {
+  fetchMediaFiles,
+  getAllAssets,
   getFileNameWithoutExtension,
   getVersion,
   initActors,
+  uploadFile,
 } from "../storage/functions";
+import { useLocation } from "react-router-dom";
 
 const Chunks = () => {
   const [showForm, setShowForm] = useState(false);
   const [initiated, setInit] = useState(false);
+  const location = useLocation();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -19,24 +24,28 @@ const Chunks = () => {
   const [image1Link, setImage1Link] = useState("");
   const [image2Link, setImage2Link] = useState("");
   const [image3Link, setImage3Link] = useState("");
+
+  const [mediaFiles, setMediaFiles] = useState([]);
   const [images, setImages] = useState([]);
 
   const [dogs, setDogs] = useState(null);
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setImage1(e.target.files[0]);
-    setImage2(e.target.files[1]);
-    setImage3(e.target.files[3]);
-    const reader = new FileReader();
+    const images = Array.from(e.target.files);
+    const firstFourImages = images.slice(0, 2);
+    setImages(firstFourImages);
+    // setImage1(e.target.files[0]);
+    // setImage2(e.target.files[1]);
+    // setImage3(e.target.files[3]);
+    // const reader = new FileReader();
 
-    reader.onload = (event) => {
-      setImages([...images, event.target.result]);
-    };
+    // reader.onload = (event) => {
+    //   setImages([...images, event.target.result]);
+    // };
 
-    if (file) {
-      reader.readAsDataURL(file);
-    }
+    // if (file) {
+    //   reader.readAsDataURL(file);
+    // }
   };
 
   const handleSubmit = async (e) => {
@@ -76,8 +85,32 @@ const Chunks = () => {
 
   const runFunctions = async () => {
     if (initiated) {
-      const res = await getFileNameWithoutExtension("enoch.jpeg");
+      const res = await getAllAssets();
       console.log(res);
+    } else {
+      console.log("Intiating...");
+    }
+  };
+  const uploadAndGet = async (e) => {
+    e.preventDefault();
+    if (initiated && images) {
+      const file_path = location.pathname;
+
+      for (const image of images) {
+        try {
+          await uploadFile(image, file_path);
+          console.log("This file was successfully uploaded:", image.name);
+        } catch (error) {
+          console.error("Error uploading file:", image.name, error);
+        }
+      }
+
+      const result = await fetchMediaFiles(file_path);
+      if (result.ok) {
+        setMediaFiles(result.ok);
+      } else {
+        console.error("Error fetching media files:", result.err);
+      }
     } else {
       console.log("Intiating...");
     }
@@ -99,7 +132,7 @@ const Chunks = () => {
           Run functions
         </button>
         {showForm && (
-          <form onSubmit={handleSubmit} className="mt-5">
+          <form onSubmit={uploadAndGet} className="mt-5">
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">Name</label>
               <input

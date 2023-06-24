@@ -40,13 +40,22 @@ export async function initActors() {
 //Return the version of the storage canister
 export async function getVersion() {
   const response = await fileStorageActor.version();
-  console.log("Response here", response)
+  console.log("Response here", response);
   return response;
 }
 
 export function getFileNameWithoutExtension(filename) {
   const index = filename.lastIndexOf(".");
   return index !== -1 ? filename.substring(0, index) : filename;
+}
+
+export async function getAllAssets() {
+  try {
+    const result = await fileStorageActor.assets_list();
+    return result
+  } catch (error) {
+    console.log("Error when fetching all assets", error)
+  }
 }
 
 export async function fetchMediaFiles(currentpath) {
@@ -113,6 +122,7 @@ export function uploadFile(file, path) {
       const asset_filename = file.name;
       const asset_content_type = file.type;
 
+
       const { ok: asset_id } = await fileStorageActor.commit_batch(
         batch_id,
         chunk_ids,
@@ -126,6 +136,8 @@ export function uploadFile(file, path) {
       );
 
       const { ok: asset } = await fileStorageActor.get(asset_id);
+
+      console.log(asset, "asset here")
 
       // Perform further operations with asset or handle the upload completion
       resolve(asset);
