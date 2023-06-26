@@ -15,6 +15,7 @@ const Chunks = () => {
   const [showForm, setShowForm] = useState(false);
   const [initiated, setInit] = useState(false);
   const location = useLocation();
+  const [urls, setUrls] = useState(null);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -86,35 +87,34 @@ const Chunks = () => {
   const runFunctions = async () => {
     if (initiated) {
       const res = await getAllAssets();
-      console.log(res);
+      if (res.ok) {
+        setUrls(res.ok);
+      }
     } else {
       console.log("Intiating...");
     }
   };
-  const uploadAndGet = async (e) => {
+  const uploadAssets = async (e) => {
     e.preventDefault();
     if (initiated && images) {
       const file_path = location.pathname;
+      const assetsUrls = [];
 
       for (const image of images) {
         try {
-          await uploadFile(image, file_path);
+          const assetUrl = await uploadFile(image, file_path);
+          assetsUrls.push(assetUrl);
           console.log("This file was successfully uploaded:", image.name);
         } catch (error) {
           console.error("Error uploading file:", image.name, error);
         }
       }
-
-      const result = await fetchMediaFiles(file_path);
-      if (result.ok) {
-        setMediaFiles(result.ok);
-      } else {
-        console.error("Error fetching media files:", result.err);
-      }
-    } else {
-      console.log("Intiating...");
+      setUrls(assetsUrls);
+      console.log("Assets urls here", assetsUrls);
     }
   };
+
+  console.log(urls);
 
   return (
     <div className="min-h-screen">
@@ -132,7 +132,7 @@ const Chunks = () => {
           Run functions
         </button>
         {showForm && (
-          <form onSubmit={uploadAndGet} className="mt-5">
+          <form onSubmit={uploadAssets} className="mt-5">
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">Name</label>
               <input
@@ -183,6 +183,17 @@ const Chunks = () => {
             </button>
           </form>
         )}
+      </div>
+      <div className="flex">
+        {urls?.map((image) => (
+          <div key={image.id} className="">
+            <img
+              src={image.url}
+              className="h-[200px] w-[200px]"
+              alt="Image"
+            />
+          </div>
+        ))}
       </div>
     </div>
   );

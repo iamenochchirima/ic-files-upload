@@ -135,7 +135,7 @@ actor class FileStorage() = this {
 
 		ignore Map.put(assets, thash, ASSET_ID, asset);
 
-		return #ok(asset.id);
+		return #ok(asset.url);
 	};
 
 

@@ -52,50 +52,50 @@ export function getFileNameWithoutExtension(filename) {
 export async function getAllAssets() {
   try {
     const result = await fileStorageActor.assets_list();
-    return result
+    return result;
   } catch (error) {
-    console.log("Error when fetching all assets", error)
+    console.log("Error when fetching all assets", error);
   }
 }
 
-export async function fetchMediaFiles(currentpath) {
-  try {
-    const result = await fileStorageActor.filter_assets_list(currentpath);
-    if (result.ok) {
-      const files = result.ok.map((file) => ({
-        ...file,
-        haschildren: haschildren(
-          `${currentpath}/${getFileNameWithoutExtension(file.filename)}`
-        ),
-      }));
-      return { ok: files };
-    } else {
-      console.error("Error fetching media files:", result.err);
-      return { err: result.err };
-    }
-  } catch (error) {
-    console.error("Error in fetchMediaFiles:", error);
-    return { err: error };
-  }
-}
+// export async function fetchMediaFiles(currentpath) {
+//   try {
+//     const result = await fileStorageActor.filter_assets_list(currentpath);
+//     if (result.ok) {
+//       const files = result.ok.map((file) => ({
+//         ...file,
+//         haschildren: haschildren(
+//           `${currentpath}/${getFileNameWithoutExtension(file.filename)}`
+//         ),
+//       }));
+//       return { ok: files };
+//     } else {
+//       console.error("Error fetching media files:", result.err);
+//       return { err: result.err };
+//     }
+//   } catch (error) {
+//     console.error("Error in fetchMediaFiles:", error);
+//     return { err: error };
+//   }
+// }
 
-export async function haschildren(path) {
-  let result = await fileStorageActor.filter_assets_list(path);
-  let hasChildren = false;
+// export async function haschildren(path) {
+//   let result = await fileStorageActor.filter_assets_list(path);
+//   let hasChildren = false;
 
-  if (result.ok) {
-    hasChildren = result.ok.length > 0;
-  } else {
-    console.error("Error fetching assets:", result.err);
-  }
+//   if (result.ok) {
+//     hasChildren = result.ok.length > 0;
+//   } else {
+//     console.error("Error fetching assets:", result.err);
+//   }
 
-  console.log("has Children number size:", hasChildren ? result.ok.length : 0);
-  return hasChildren;
-}
+//   console.log("has Children number size:", hasChildren ? result.ok.length : 0);
+//   return hasChildren;
+// }
 
 export function uploadFile(file, path) {
   return new Promise((resolve, reject) => {
-    const blob = new Blob([file], { type: file.type });
+    // const blob = new Blob([file], { type: file.type });
     const batch_id = Math.random().toString(36).substring(2, 7);
     const uploadChunk = async ({ chunk, order }) => {
       return fileStorageActor.create_chunk(batch_id, chunk, order);
@@ -122,8 +122,7 @@ export function uploadFile(file, path) {
       const asset_filename = file.name;
       const asset_content_type = file.type;
 
-
-      const { ok: asset_id } = await fileStorageActor.commit_batch(
+      const { ok: asset_url } = await fileStorageActor.commit_batch(
         batch_id,
         chunk_ids,
         {
@@ -135,19 +134,7 @@ export function uploadFile(file, path) {
         path
       );
 
-      const { ok: asset } = await fileStorageActor.get(asset_id);
-
-      console.log(asset, "asset here")
-
-      // Perform further operations with asset or handle the upload completion
-      resolve(asset);
-
-      console.error(
-        "asset_filename : ",
-        asset_filename,
-        "asset path",
-        asset.path
-      );
+      resolve(asset_url);
     };
 
     asset_reader.onerror = (error) => {
