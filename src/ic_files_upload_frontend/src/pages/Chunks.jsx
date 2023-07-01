@@ -35,18 +35,6 @@ const Chunks = () => {
     const images = Array.from(e.target.files);
     const firstFourImages = images.slice(0, 2);
     setImages(firstFourImages);
-    // setImage1(e.target.files[0]);
-    // setImage2(e.target.files[1]);
-    // setImage3(e.target.files[3]);
-    // const reader = new FileReader();
-
-    // reader.onload = (event) => {
-    //   setImages([...images, event.target.result]);
-    // };
-
-    // if (file) {
-    //   reader.readAsDataURL(file);
-    // }
   };
 
   const handleSubmit = async (e) => {
@@ -62,8 +50,6 @@ const Chunks = () => {
       },
     };
     console.log(input);
-    // const res = await ic_files_upload_backend.saveDog(input);
-    // console.log(res)
   };
 
   useEffect(() => {
