@@ -58,41 +58,6 @@ export async function getAllAssets() {
   }
 }
 
-// export async function fetchMediaFiles(currentpath) {
-//   try {
-//     const result = await fileStorageActor.filter_assets_list(currentpath);
-//     if (result.ok) {
-//       const files = result.ok.map((file) => ({
-//         ...file,
-//         haschildren: haschildren(
-//           `${currentpath}/${getFileNameWithoutExtension(file.filename)}`
-//         ),
-//       }));
-//       return { ok: files };
-//     } else {
-//       console.error("Error fetching media files:", result.err);
-//       return { err: result.err };
-//     }
-//   } catch (error) {
-//     console.error("Error in fetchMediaFiles:", error);
-//     return { err: error };
-//   }
-// }
-
-// export async function haschildren(path) {
-//   let result = await fileStorageActor.filter_assets_list(path);
-//   let hasChildren = false;
-
-//   if (result.ok) {
-//     hasChildren = result.ok.length > 0;
-//   } else {
-//     console.error("Error fetching assets:", result.err);
-//   }
-
-//   console.log("has Children number size:", hasChildren ? result.ok.length : 0);
-//   return hasChildren;
-// }
-
 export function uploadFile(file, path) {
   return new Promise((resolve, reject) => {
     // const blob = new Blob([file], { type: file.type });
@@ -145,45 +110,22 @@ export function uploadFile(file, path) {
   });
 }
 
-export async function removeGridItem(url, container, currentpath) {
+export async function deleteAsset(url) {
   const confirmation = confirm("Are you sure you want to delete this image?");
   if (!confirmation) {
     return; // The user clicked 'Cancel', so we exit the function.
   }
   try {
-    console.log("Removing grid item with URL:", url);
+    console.log("Removing asset with URL:", url);
     const assetId = getAssetId(url);
 
-    console.log("Removing grid item with Asset ID:", assetId);
+    console.log("Removing asset with Asset ID:", assetId);
 
     const delete_result = await fileStorageActor.delete_asset(assetId);
-    console.log("Removing grid item with delete_result:", delete_result);
+    console.log("Removing asset with delete_result:", delete_result);
 
     if (delete_result.ok) {
-      const result = await fetchMediaFiles(currentpath);
-      if (result.ok) {
-        mediaFiles = result.ok;
-
-        // Remove the grid item from the packery instance
-        const gridItem = Array.from(
-          container.querySelectorAll(".grid-item")
-        ).find((item) => {
-          const img = item.querySelector("img");
-          return img && img.src === url;
-        });
-        if (gridItem) {
-          container.removeChild(gridItem);
-        }
-
-        // Trigger the layout update
-        const packery = new Packery(container, {
-          itemSelector: ".grid-item",
-          gutter: 1,
-        });
-        packery.layout();
-      } else {
-        console.error("Error fetching media files:", result.err);
-      }
+      console.log("Deleted asset item:", delete_result.ok);
     } else {
       console.error("Error deleting grid item:", delete_result.err);
     }
@@ -208,67 +150,5 @@ function getAssetId(url) {
   return assetId;
 }
 
-export async function updateMediaFiles(mediaStyles, currentpath) {
-  const result = await fetchMediaFiles(currentpath);
-  if (result.ok) {
-    mediaFiles = result.ok;
-    mediaStyles = await Promise.all(
-      mediaFiles.map((file) => getImageStyles(file))
-    );
-    return mediaStyles;
-  } else {
-    console.error("Error fetching media files:", result.err);
-  }
-}
-
-export async function getImageStyles(file) {
-  return new Promise((resolve, reject) => {
-    let img = new Image();
-    img.onload = function () {
-      const unit = 200; // Size unit
-      const aspectRatio = this.width / this.height;
-
-      let width, height;
-
-      if (aspectRatio >= 1) {
-        // Landscape image or square image
-        width = Math.round(unit * aspectRatio) + "px";
-        height = unit + "px";
-      } else {
-        // Portrait image
-        width = unit + "px";
-        height = Math.round(unit / aspectRatio) + "px";
-      }
-
-      const styles = `width: ${width}; height: ${height};`;
-      resolve(styles);
-    };
-    img.onerror = function () {
-      reject("Failed to load image");
-    };
-    img.src = file.url;
-  });
-}
-
-export async function initPackery(container) {
-  try {
-    if (container) {
-      if (!packery) {
-        packery = new Packery(container, {
-          itemSelector: ".grid-item",
-          gutter: 3,
-        });
-
-        imagesLoaded(container, () => {
-          packery.layout();
-        });
-      }
-    } else {
-      console.log("Error getting container for initPackery.");
-    }
-  } catch (error) {
-    console.error("Error initializing Packery:", error);
-  }
-}
 
 export { actorsInitialized, fileStorageActor };
