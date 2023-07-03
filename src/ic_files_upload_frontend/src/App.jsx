@@ -12,8 +12,8 @@ const App = () => {
     <BrowserRouter>
       <Routes>
       <Route element={<Layout />}>
-        <Route index element={<Default />} />
-        <Route path="/chunks" element={<Gallary />} />
+        <Route index element={<Gallary />} />
+        <Route path="/gallary" element={<Gallary />} />
         <Route path="/ipfs" element={<IPFS />} />
         </Route>
       </Routes>
