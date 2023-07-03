@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Default from "./pages/Default";
-import Chunks from "./pages/Chunks";
+import Gallary from "./pages/Gallary";
 import IPFS from "./pages/IPFS";
 import Layout from "./components/Layout";
 
@@ -13,7 +13,7 @@ const App = () => {
       <Routes>
       <Route element={<Layout />}>
         <Route index element={<Default />} />
-        <Route path="/chunks" element={<Chunks />} />
+        <Route path="/chunks" element={<Gallary />} />
         <Route path="/ipfs" element={<IPFS />} />
         </Route>
       </Routes>

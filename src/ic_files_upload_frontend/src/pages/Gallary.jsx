@@ -11,56 +11,64 @@ import {
 } from "../storage/functions";
 import { useLocation } from "react-router-dom";
 
-const Chunks = () => {
+const Gallary = () => {
   const [showForm, setShowForm] = useState(false);
   const [initiated, setInit] = useState(false);
   const location = useLocation();
   const [urls, setUrls] = useState(null);
+  const [loading, setLoading] =  useState(false)
+  const [uploading, setUpLoading] =  useState(false)
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [image1, setImage1] = useState(null);
-  const [image2, setImage2] = useState(null);
-  const [image3, setImage3] = useState(null);
-  const [image1Link, setImage1Link] = useState("");
-  const [image2Link, setImage2Link] = useState("");
-  const [image3Link, setImage3Link] = useState("");
+  // const [name, setName] = useState("");
+  // const [description, setDescription] = useState("");
+  // const [image1, setImage1] = useState(null);
+  // const [image2, setImage2] = useState(null);
+  // const [image3, setImage3] = useState(null);
+  // const [image1Link, setImage1Link] = useState("");
+  // const [image2Link, setImage2Link] = useState("");
+  // const [image3Link, setImage3Link] = useState("");
 
   const [mediaFiles, setMediaFiles] = useState([]);
   const [images, setImages] = useState([]);
-
-  const [dogs, setDogs] = useState(null);
+  const [uploads, setUploads] = useState([]);
 
   const handleImageChange = (e) => {
-    const images = Array.from(e.target.files);
-    const firstFourImages = images.slice(0, 2);
-    setImages(firstFourImages);
+    const files = Array.from(e.target.files);
+    const selected = files.slice(0, 2);
+    setUploads(selected);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const input = {
-      id: uuidv4(),
-      name: name,
-      description: description,
-      images: {
-        image1: image1Link,
-        image2: image2Link,
-        image3: image3Link,
-      },
-    };
-    console.log(input);
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   const input = {
+  //     id: uuidv4(),
+  //     name: name,
+  //     description: description,
+  //     images: {
+  //       image1: image1Link,
+  //       image2: image2Link,
+  //       image3: image3Link,
+  //     },
+  //   };
+  //   console.log(input);
+  // };
+
+  const getImages = async () => {
+    const res = await getAllAssets();
+    if (res.ok) {
+      setImages(res.ok);
+    }
   };
 
   useEffect(() => {
-    const getDogs = async () => {
-      const res = await ic_files_upload_backend.getDogs();
-      setDogs(res);
-    };
-    getDogs();
-  }, []);
+    if (initiated) {
+      getImages();
+      setLoading(false)
+    }
+  }, [initiated]);
 
   useEffect(() => {
+    setLoading(true)
     const init = async () => {
       const res = await initActors();
       if (res) {
@@ -70,37 +78,33 @@ const Chunks = () => {
     init();
   }, []);
 
-  const runFunctions = async () => {
-    if (initiated) {
-      const res = await getAllAssets();
-      if (res.ok) {
-        setUrls(res.ok);
-      }
-    } else {
-      console.log("Intiating...");
-    }
-  };
   const uploadAssets = async (e) => {
     e.preventDefault();
-    if (initiated && images) {
+    if (initiated && uploads) {
+      setUpLoading(true)
       const file_path = location.pathname;
       const assetsUrls = [];
 
-      for (const image of images) {
+      for (const image of uploads) {
         try {
           const assetUrl = await uploadFile(image, file_path);
           assetsUrls.push(assetUrl);
           console.log("This file was successfully uploaded:", image.name);
+          getImages()
+          setUpLoading(false)
         } catch (error) {
           console.error("Error uploading file:", image.name, error);
         }
       }
       setUrls(assetsUrls);
       console.log("Assets urls here", assetsUrls);
+  
     }
   };
 
   console.log(urls);
+
+  console.log(images.length)
 
   return (
     <div className="min-h-screen">
@@ -109,17 +113,11 @@ const Chunks = () => {
           onClick={() => setShowForm(true)}
           className="bg-blue-500 p-2 text-white rounded-lg"
         >
-          Create a post
-        </button>
-        <button
-          onClick={runFunctions}
-          className="bg-green-500 p-2 text-white rounded-lg"
-        >
-          Run functions
+          Upload images
         </button>
         {showForm && (
           <form onSubmit={uploadAssets} className="mt-5">
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">Name</label>
               <input
                 type="text"
@@ -137,7 +135,7 @@ const Chunks = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 className="border border-gray-400 rounded w-full py-2 px-3"
               ></textarea>
-            </div>
+            </div> */}
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
                 Images
@@ -148,36 +146,23 @@ const Chunks = () => {
                 multiple
                 onChange={handleImageChange}
               />
-              {images.length > 0 && (
-                <div className="mt-2 flex">
-                  {images.map((image, index) => (
-                    <img
-                      key={index}
-                      src={image}
-                      alt="Uploaded"
-                      className="w-10 h-10 object-cover object-center"
-                    />
-                  ))}
-                </div>
-              )}
             </div>
             <button
               type="submit"
               className="bg-blue-500 text-white py-2 px-4 rounded-lg"
             >
-              Submit
+              {uploading ? "Uploading..." : "Upload"}
             </button>
           </form>
         )}
       </div>
       <div className="flex">
-        {urls?.map((image) => (
+        {images.length == 0 && (
+          <h3 className="text-center">{loading ? "Loading ..." : "No images uploaded yet"}</h3>
+        )}
+        {images?.map((image) => (
           <div key={image.id} className="">
-            <img
-              src={image.url}
-              className="h-[200px] w-[200px]"
-              alt="Image"
-            />
+            <img src={image.url} className="h-[200px] w-[200px]" alt="Image" />
           </div>
         ))}
       </div>
@@ -185,4 +170,4 @@ const Chunks = () => {
   );
 };
 
-export default Chunks;
+export default Gallary;
