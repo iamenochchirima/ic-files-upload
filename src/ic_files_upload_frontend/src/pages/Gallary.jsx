@@ -104,8 +104,6 @@ const Gallary = () => {
 
   console.log(urls);
 
-  console.log(images.length)
-
   return (
     <div className="min-h-screen">
       <div className="flex flex-col items-center justify-center mt-5">
