@@ -48,20 +48,14 @@ module.exports = {
     rules: [
       { test: /\.(ts|tsx|jsx)$/, loader: "ts-loader" },
       { test: /\.css$/, use: ["style-loader", "css-loader", "postcss-loader"] },
-    ]
+    ],
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: path.join(__dirname, frontend_entry),
       cache: false,
     }),
-    new webpack.EnvironmentPlugin([
-      ...Object.keys(process.env).filter((key) => {
-        if (key.includes("CANISTER")) return true;
-        if (key.includes("DFX")) return true;
-        return false;
-      }),
-    ]),
+    new webpack.EnvironmentPlugin(["CANISTER_ID", "DFX_NETWORK"]),
     new webpack.ProvidePlugin({
       Buffer: [require.resolve("buffer/"), "Buffer"],
       process: require.resolve("process/browser"),

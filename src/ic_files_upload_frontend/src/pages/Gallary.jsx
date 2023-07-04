@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { ic_files_upload_backend } from "../../../declarations/ic_files_upload_backend/index";
-import {
-  fetchMediaFiles,
-  getAllAssets,
-  getFileNameWithoutExtension,
-  getVersion,
-  initActors,
-  uploadFile,
-} from "../storage/functions";
+import {get} from "lodash";
+import { AssetManager } from 'agent-js-file-upload';
+
+// import { ic_files_upload_backend } from "../../../declarations/ic_files_upload_backend/index";
+
 import { useLocation } from "react-router-dom";
 
 const Gallary = () => {
@@ -18,6 +14,26 @@ const Gallary = () => {
   const [urls, setUrls] = useState(null);
   const [loading, setLoading] =  useState(false)
   const [uploading, setUpLoading] =  useState(false)
+
+  //TODO: fix me to read from process.env, not sure why it isn't working
+  const isProd = false;
+
+  //NOTE: change me to diff id that you deploy
+  let canister_id = "bw4dl-smaaa-aaaaa-qaacq-cai";
+  const host = isProd ? `https://${canister_id}.icp0.io/` : `http://127.0.0.1:8080`;
+
+  console.log("host: ", host);
+
+  const asset_manager = new AssetManager({
+    actor_config: {
+      canister_id: canister_id,
+      identity: null,
+      host: host,
+      is_prod: isProd
+    }
+  });
+
+  let is_uploading = false;
 
   // const [name, setName] = useState("");
   // const [description, setDescription] = useState("");
@@ -53,56 +69,97 @@ const Gallary = () => {
   //   console.log(input);
   // };
 
-  const getImages = async () => {
-    const res = await getAllAssets();
-    if (res.ok) {
-      setImages(res.ok);
-    }
-  };
+  // const getImages = async () => {
+  //   const res = await getAllAssets();
+  //   if (res.ok) {
+  //     setImages(res.ok);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   if (initiated) {
+  //     getImages();
+  //     setLoading(false)
+  //   }
+  // }, [initiated]);
+
 
   useEffect(() => {
-    if (initiated) {
-      getImages();
-      setLoading(false)
-    }
-  }, [initiated]);
 
-  useEffect(() => {
-    setLoading(true)
-    const init = async () => {
-      const res = await initActors();
-      if (res) {
-        setInit(true);
+    const fetchData = async () => {
+      try {
+
+        const assets_ = await asset_manager.getAllAssets();
+        const version = await asset_manager.version();
+
+        console.log('assets_: ', assets_);
+        console.log('version: ', version);
+
+      } catch (error) {
+        console.log('err: ', error);
       }
     };
-    init();
+  
+    fetchData();
   }, []);
 
-  const uploadAssets = async (e) => {
+  async function handleFileSelection(e) {
     e.preventDefault();
-    if (initiated && uploads) {
-      setUpLoading(true)
-      const file_path = location.pathname;
-      const assetsUrls = [];
 
-      for (const image of uploads) {
-        try {
-          const assetUrl = await uploadFile(image, file_path);
-          assetsUrls.push(assetUrl);
-          console.log("This file was successfully uploaded:", image.name);
-          getImages()
-          setUpLoading(false)
-        } catch (error) {
-          console.error("Error uploading file:", image.name, error);
-        }
-      }
-      setUrls(assetsUrls);
-      console.log("Assets urls here", assetsUrls);
-  
+    console.log("uploads: ", uploads);
+
+
+      
+    for (const file of uploads) {
+        is_uploading = true;
+        const file_name = get(file, 'name', '');
+        const file_type = get(file, 'type', '');
+        const file_array_buffer = file && new Uint8Array(await file.arrayBuffer());
+
+        console.log("asset_manager: ", asset_manager);
+        console.log("before store");
+        const { ok: asset_id, err: err_id } = await asset_manager.store(file_array_buffer, {
+            filename: file_name,
+            content_type: file_type
+        });
+
+        console.log("asset_id: ", asset_id);
+        console.log("err_id: ", err_id);
+
+        const assets_ = await asset_manager.getAllAssets();
+
+        setImages(assets_);
+        console.log('assets_: ', assets_);
+
+        is_uploading = false;
     }
-  };
+  }
 
-  console.log(urls);
+
+  // const uploadAssets = async (e) => {
+  //   e.preventDefault();
+  //   if (initiated && uploads) {
+  //     setUpLoading(true)
+  //     const file_path = location.pathname;
+  //     const assetsUrls = [];
+
+  //     for (const image of uploads) {
+  //       try {
+  //         const assetUrl = await uploadFile(image, file_path);
+  //         assetsUrls.push(assetUrl);
+  //         console.log("This file was successfully uploaded:", image.name);
+  //         getImages()
+  //         setUpLoading(false)
+  //       } catch (error) {
+  //         console.error("Error uploading file:", image.name, error);
+  //       }
+  //     }
+  //     setUrls(assetsUrls);
+  //     console.log("Assets urls here", assetsUrls);
+  
+  //   }
+  // };
+
 
   return (
     <div className="min-h-screen">
@@ -114,7 +171,7 @@ const Gallary = () => {
           Upload images
         </button>
         {showForm && (
-          <form onSubmit={uploadAssets} className="mt-5">
+          <form onSubmit={handleFileSelection} className="mt-5">
             {/* <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">Name</label>
               <input

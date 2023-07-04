@@ -17,10 +17,11 @@
     "generate": "dfx generate ic_files_upload_backend"
   },
   "dependencies": {
-    "@dfinity/agent": "^0.15.6",
+    "@dfinity/agent": "^0.16.0",
     "@dfinity/candid": "^0.15.6",
     "@dfinity/identity": "^0.15.7",
     "@dfinity/principal": "^0.15.6",
+    "agent-js-file-upload": "^0.3.2",
     "crc-32": "^1.2.2",
     "css-loader": "^6.8.1",
     "fs": "^0.0.1-security",
@@ -41,7 +42,7 @@
     "autoprefixer": "^10.4.14",
     "buffer": "6.0.3",
     "copy-webpack-plugin": "^11.0.0",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.3.1",
     "events": "3.3.0",
     "html-webpack-plugin": "5.5.0",
     "mime": "^3.0.0",
