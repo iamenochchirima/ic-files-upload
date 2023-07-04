@@ -92,6 +92,8 @@ const Gallary = () => {
         const assets_ = await asset_manager.getAllAssets();
         const version = await asset_manager.version();
 
+        setImages(assets_);
+
         console.log('assets_: ', assets_);
         console.log('version: ', version);
 
