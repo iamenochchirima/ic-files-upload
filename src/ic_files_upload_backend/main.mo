@@ -2,8 +2,8 @@ import Text "mo:base/Text";
 import TrieMap "mo:base/TrieMap";
 import Bool "mo:base/Bool";
 import Iter "mo:base/Iter";
-actor {
 
+actor {
   public type Dog = {
     id : Text;
     name : Text;
@@ -23,9 +23,8 @@ actor {
     return true;
   };
 
-  public shared query func getDogs(): async [Dog] {
+  public shared query func getDogs() : async [Dog] {
     let dogs = Iter.toArray(mapOfDogs.vals());
     return dogs;
-  }
-
+  };
 };

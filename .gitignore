@@ -11,6 +11,8 @@
 .dfx/
 .mops/
 
+.package-lock.json
+
 # generated files
 src/declarations/
 
