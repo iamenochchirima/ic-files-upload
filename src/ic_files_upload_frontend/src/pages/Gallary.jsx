@@ -15,11 +15,11 @@ const Gallary = () => {
   const [loading, setLoading] =  useState(false)
   const [uploading, setUpLoading] =  useState(false)
 
-  //TODO: fix me to read from process.env, not sure why it isn't working
+  //TODO fix me to read from process.env, not sure why it isn't working
   const isProd = false;
 
   //NOTE: change me to diff id that you deploy
-  let canister_id = "bw4dl-smaaa-aaaaa-qaacq-cai";
+  let canister_id = "avqkn-guaaa-aaaaa-qaaea-cai";
   const host = isProd ? `https://${canister_id}.icp0.io/` : `http://127.0.0.1:8080`;
 
   console.log("host: ", host);
@@ -32,8 +32,6 @@ const Gallary = () => {
       is_prod: isProd
     }
   });
-
-  let is_uploading = false;
 
   // const [name, setName] = useState("");
   // const [description, setDescription] = useState("");
@@ -113,7 +111,7 @@ const Gallary = () => {
 
       
     for (const file of uploads) {
-        is_uploading = true;
+        setLoading(true);
         const file_name = get(file, 'name', '');
         const file_type = get(file, 'type', '');
         const file_array_buffer = file && new Uint8Array(await file.arrayBuffer());
@@ -133,7 +131,7 @@ const Gallary = () => {
         setImages(assets_);
         console.log('assets_: ', assets_);
 
-        is_uploading = false;
+        setLoading(false);
     }
   }
 
@@ -206,9 +204,9 @@ const Gallary = () => {
             </div>
             <button
               type="submit"
-              className="bg-blue-500 text-white py-2 px-4 rounded-lg"
+              className={`${loading ? `bg-green-600` : `bg-blue-500`}  text-white py-2 px-4 rounded-lg`}
             >
-              {uploading ? "Uploading..." : "Upload"}
+              {loading ? "Uploading..." : "Upload"}
             </button>
           </form>
         )}
