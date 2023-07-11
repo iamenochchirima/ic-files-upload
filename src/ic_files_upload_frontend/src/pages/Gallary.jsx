@@ -19,7 +19,7 @@ const Gallary = () => {
   const isProd = false;
 
   //NOTE: change me to diff id that you deploy
-  let canister_id = "avqkn-guaaa-aaaaa-qaaea-cai";
+  let canister_id = "ajuq4-ruaaa-aaaaa-qaaga-cai";
   const host = isProd ? `https://${canister_id}.icp0.io/` : `http://127.0.0.1:8080`;
 
   console.log("host: ", host);
